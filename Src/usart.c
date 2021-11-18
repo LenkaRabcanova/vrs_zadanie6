@@ -151,49 +151,27 @@ void USART2_CheckDmaReception(void)
 	if(USART2_ProcessData == 0) return;
 
 
-	if(LL_DMA_IsActiveFlag_HT1(DMA1) || LL_USART_IsActiveFlag_IDLE(USART2)|| LL_DMA_IsActiveFlag_TC1(DMA1)){
-
-		for(int i=old_pos; i< old_pos + (DMA_USART2_BUFFER_SIZE - LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6)); i++){
+		for(int i=old_pos; i<(DMA_USART2_BUFFER_SIZE - LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6)); i++){
 
 		USART2_ProcessData(bufferUSART2dma[i]);
 		old_pos=i;
 
 		}
-	}
 
-		if(old_pos == DMA_USART2_BUFFER_SIZE ) {
-				old_pos = 0;
+		if(LL_DMA_IsActiveFlag_TC6(DMA1)) {
+		    old_pos = 0;
+
+			LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_6);
+
+			LL_DMA_ConfigAddresses(	DMA1, LL_DMA_CHANNEL_6,
+		    LL_USART_DMA_GetRegAddr(USART2, LL_USART_DMA_REG_DATA_RECEIVE),	(uint32_t)bufferUSART2dma,LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_6));
+		    LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, DMA_USART2_BUFFER_SIZE);
+		    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
+
 		}
+
 
 }
-/*
-	uint16_t pos = DMA_USART2_BUFFER_SIZE - LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6);
-
-	if (pos != old_pos)
-	{
-		if (pos > old_pos)
-		{
-			USART2_ProcessData(&bufferUSART2dma[old_pos], pos - old_pos);
-		}
-		else
-		{
-			USART2_ProcessData(&bufferUSART2dma[old_pos], DMA_USART2_BUFFER_SIZE - old_pos);
-
-			if (pos > 0)
-			{
-				USART2_ProcessData(&bufferUSART2dma[0], pos);
-			}
-		}
-	}
-
-
-	old_pos = pos;
-
-	if (old_pos == DMA_USART2_BUFFER_SIZE)
-	{
-		old_pos = 0;
-	} */
-
 
 
 

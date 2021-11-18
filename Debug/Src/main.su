@@ -15,5 +15,5 @@ stm32f3xx_ll_system.h:1647:26:LL_FLASH_GetLatency	4	static
 stm32f3xx_ll_cortex.h:260:22:LL_SYSTICK_SetClkSource	16	static
 main.c:54:5:main	128	static
 main.c:97:6:SystemClock_Config	8	static
-main.c:131:6:proccesDmaData	32	static
-main.c:182:6:Error_Handler	4	static
+main.c:131:6:proccesDmaData	16	static
+main.c:169:6:Error_Handler	4	static

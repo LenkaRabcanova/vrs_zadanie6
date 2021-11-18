@@ -86,7 +86,7 @@ int main(void)
   	  	  	  //type your code here:
 	  	int occup_memory = DMA_USART2_BUFFER_SIZE-LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6);
 	  	float load = ((float)occup_memory/DMA_USART2_BUFFER_SIZE)*100;
-	  	length = sprintf(buffer,"Buffer capacity: 256 bytes, occup_memory: %d bytes, load: %f %% \r",occup_memory,load);
+	  	length = sprintf(buffer," \rBuffer capacity: 256 bytes, occup_memory: %d bytes, load: %f %% \r",occup_memory,load);
 	  	USART2_PutBuffer(buffer, length);
 		LL_mDelay(5000);
   }
@@ -133,49 +133,36 @@ void proccesDmaData(uint8_t sign)
 	/* Process received data */
 
 		// type your algorithm here:
-	msg[pomocna] = sign;
-	if(isListening == false && sign != '#'){
 
-	}
-	else {
-	    if(sign == '#'){
-	        isListening = true;
-	        i = 0;
+	 if(sign == '#'){
+		        isListening = true;
+		        i = 0;
+		        count.capital_letter=0;
+		        count.small_letter=0;
+		    }
 
-	    }
 
-	    if(sign == '$'){
+	if(isListening == true){
 
-		int upper = 0, lower = 0;
-		for(int j=0; msg[j]!=0;j++){
-		if(msg[j]>='A' && msg[j]<='Z'){
-			upper++;
+
+		if(sign>='A' && sign<='Z'){
 			count.capital_letter++;
 		}
-		else if(msg[j]>='a' && msg[j]<='z'){
-			lower++;
+	    if(sign>='a' && sign<='z'){
 			count.small_letter++;
 		}
-	}
 
-	        isListening = false;
-	        memset(msg, 0, 35);
-	        i = 0;
+	        i++;
 
 	    }
 
-	if(i == 35){
+	if(i >= 35 || sign == '$'){
 
 	     isListening = false;
-	     memset(msg, 0, 35);
 	     i = 0;
 	}
-
-	pomocna++;
-
-	}
-
 }
+
 
 
 
