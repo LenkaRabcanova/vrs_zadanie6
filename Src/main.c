@@ -23,6 +23,9 @@
 #include "dma.h"
 #include "usart.h"
 #include "gpio.h"
+#include "stdbool.h"
+#include "string.h"
+#include "stdio.h"
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -39,12 +42,23 @@ void proccesDmaData(uint8_t sign);
 /* Space for your global variables. */
 
 	// type your global variables here:
+	char msg[35];
+	int i = 0;
+	bool isListening = false;
+	int pomocna = 0;
+	letter_count_ count;
+
+
 
 
 int main(void)
 {
   /* MCU Configuration--------------------------------------------------------*/
+	char buffer[100];
+	int length;
 
+	count.small_letter=0;
+	count.capital_letter=0;
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
@@ -56,7 +70,7 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART2_UART_Init();
-
+  USART2_RegisterCallback(proccesDmaData);
   /* Space for your local variables, callback registration ...*/
 
   	  //type your code here:
@@ -70,6 +84,11 @@ int main(void)
 	   */
 
   	  	  	  //type your code here:
+	  	int occup_memory = DMA_USART2_BUFFER_SIZE-LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6);
+	  	float load = ((float)occup_memory/DMA_USART2_BUFFER_SIZE)*100;
+	  	length = sprintf(buffer,"Buffer capacity: 256 bytes, occup_memory: %d bytes, load: %f %% \r",occup_memory,load);
+	  	USART2_PutBuffer(buffer, length);
+		LL_mDelay(5000);
   }
   /* USER CODE END 3 */
 }
@@ -114,7 +133,50 @@ void proccesDmaData(uint8_t sign)
 	/* Process received data */
 
 		// type your algorithm here:
+	msg[pomocna] = sign;
+	if(isListening == false && sign != '#'){
+
+	}
+	else {
+	    if(sign == '#'){
+	        isListening = true;
+	        i = 0;
+
+	    }
+
+	    if(sign == '$'){
+
+		int upper = 0, lower = 0;
+		for(int j=0; msg[j]!=0;j++){
+		if(msg[j]>='A' && msg[j]<='Z'){
+			upper++;
+			count.capital_letter++;
+		}
+		else if(msg[j]>='a' && msg[j]<='z'){
+			lower++;
+			count.small_letter++;
+		}
+	}
+
+	        isListening = false;
+	        memset(msg, 0, 35);
+	        i = 0;
+
+	    }
+
+	if(i == 35){
+
+	     isListening = false;
+	     memset(msg, 0, 35);
+	     i = 0;
+	}
+
+	pomocna++;
+
+	}
+
 }
+
 
 
 void Error_Handler(void)

@@ -24,7 +24,7 @@
 uint8_t bufferUSART2dma[DMA_USART2_BUFFER_SIZE];
 
 /* Declaration and initialization of callback function */
-static void (* USART2_ProcessData)(uint8_t data, uint16_t len) = 0;
+static void (* USART2_ProcessData)(uint8_t sign) = 0;
 
 /* Register callback */
 void USART2_RegisterCallback(void *callback)
@@ -38,6 +38,7 @@ void USART2_RegisterCallback(void *callback)
 /* Space for global variables, if you need them */
 
 	// type global variables here
+uint16_t old_pos = 0;
 
 
 /* USART2 init function */
@@ -88,11 +89,9 @@ void MX_USART2_UART_Init(void)
    LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, DMA_USART2_BUFFER_SIZE);
    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
    LL_USART_EnableDMAReq_RX(USART2);
-
- #if !POLLING
    LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_6);
    LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_6);
- #endif
+
 
    /* USART2_TX Init */
    LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_7, LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
@@ -122,16 +121,10 @@ void MX_USART2_UART_Init(void)
    LL_USART_Init(USART2, &USART_InitStruct);
    LL_USART_ConfigAsyncMode(USART2);
    LL_USART_DisableIT_CTS(USART2);
-
  /* Enable USART2 peripheral and interrupts*/
- #if !POLLING
    LL_USART_EnableIT_IDLE(USART2);
- #endif
-   LL_USART_ConfigAsyncMode(USART2);
    LL_USART_Enable(USART2);
  }
-
-
 
 
 // Send data stored in buffer with DMA
@@ -157,8 +150,23 @@ void USART2_CheckDmaReception(void)
 {
 	if(USART2_ProcessData == 0) return;
 
-	static uint16_t old_pos = 0;
 
+	if(LL_DMA_IsActiveFlag_HT1(DMA1) || LL_USART_IsActiveFlag_IDLE(USART2)|| LL_DMA_IsActiveFlag_TC1(DMA1)){
+
+		for(int i=old_pos; i< old_pos + (DMA_USART2_BUFFER_SIZE - LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6)); i++){
+
+		USART2_ProcessData(bufferUSART2dma[i]);
+		old_pos=i;
+
+		}
+	}
+
+		if(old_pos == DMA_USART2_BUFFER_SIZE ) {
+				old_pos = 0;
+		}
+
+}
+/*
 	uint16_t pos = DMA_USART2_BUFFER_SIZE - LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6);
 
 	if (pos != old_pos)
@@ -178,13 +186,14 @@ void USART2_CheckDmaReception(void)
 		}
 	}
 
+
 	old_pos = pos;
 
 	if (old_pos == DMA_USART2_BUFFER_SIZE)
 	{
 		old_pos = 0;
-	}
-}
+	} */
+
 
 
 
